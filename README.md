@@ -57,8 +57,8 @@ This driver lets you create fields of specified data types, then in some measure
 <br>
 <b><h3>Library status</b></h3>
 1. works and tested with Winbond W25Q64JVSSIQ<br>
-2. can write ~50 bytes in 1.5 ms
-3. Library wires byte by byte and not byte arrays for improved write reliability, tested by writing 4mb with zero loss of data
+2. can write ~50 bytes in 1.5 ms<br>
+3. Library wires byte by byte and not byte arrays for improved write reliability, tested by writing 4mb with zero loss of data<br>
 <br>
 <b><h3>General implementation</b></h3>
 <br>
