@@ -1,5 +1,5 @@
 # DBase
-Remember the infamous DBase III? Well here it is for your MCU's. This library is a database system for SPI-based flash memory chips intended for microcontrollers like the mighty Teensy. This database driver uses a field/record approach in saving data to a chip. While you can save data to and SD card, the classic open/write/save has a huge overhead the can take in the 100's of ms to execute. This driver can save ~50 bytes in under 2ms. Data on the chip can be downloaded to an SD card for portable transfer to a PC. 
+Remember the infamous DBase III? Well here it is for your MCU's (tested with Teensy and W25Q64JVSSIQ). This library is a database system for SPI-based flash memory chips intended for microcontrollers like the mighty Teensy. This database driver uses a field/record approach in saving data to a chip. While you can save data to and SD card, the classic open/write/save has a huge overhead the can take in the 100's of ms to execute. This driver can save ~50 bytes in under 2ms. Data on the chip can be downloaded to an SD card for portable transfer to a PC. 
 
 https://www.winbond.com/resource-files/w25q64jv%20revj%2003272018%20plus.pdf
 
@@ -56,7 +56,7 @@ This driver lets you create fields of specified data types, then in some measure
 13. Only 1 field scheme is allow between chip erases
 <br>
 <b><h3>Library status</b></h3>
-1. works and tested with Winbond W25Q64JVSSIQ
+1. works and tested with Winbond W25Q64JVSSIQ<br>
 2. can write ~50 bytes in 1.5 ms
 3. Library wires byte by byte and not byte arrays for improved write reliability, tested by writing 4mb with zero loss of data
 <br>
