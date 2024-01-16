@@ -1,6 +1,12 @@
 # DBase
 Remember the infamous DBase III? Well here it is for your MCU's (tested with Teensy and W25Q64JVSSIQ). This library is a database system for SPI-based flash memory chips intended for microcontrollers like the mighty Teensy. This database driver uses a field/record approach in saving data to a chip. While you can save data to and SD card, the classic open/write/save has a huge overhead the can take in the 100's of ms to execute. This driver can save ~50 bytes in under 2ms. Data on the chip can be downloaded to an SD card for portable transfer to a PC. 
 
+Tested
+MCU    
+Teensy 3.2
+Teensy 4.0
+
+
 https://www.winbond.com/resource-files/w25q64jv%20revj%2003272018%20plus.pdf
 
 This driver is intended for data acquistion systems where known data is to be stored. As it uses a field/record approach, data variables are stored in fields, and each measurement is stored as a record. The intent is to save measurements such as volts in a volt field, temperature in a temp field, etc. Hence, it's not intended for saving video, images, or "random" data. 
