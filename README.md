@@ -170,7 +170,9 @@ for (i = 1; i <= LastRecord; i++) {
 <br>
 <br>
 <br>
-Performance comparison between 3 different storage options 1) flash chip using this library 2) standard SD card using SdFat 3) flash chio using LittleFS. Users can chose when to close files with SD cards and LittleFS, either close after all data is collected, or close after each datapoint is collected. There are several cases that require the latter, namely when power down is unpredictable in which results in data loss due to lack of file closure. Since this library has no concept of opening and closing, there is no chance of lost data in the even of an unplanned loss of power.  
+Performance comparison between 3 different storage options 1) flash chip using this library 2) standard SD card using SdFat 3) flash chio using LittleFS. Users can chose when to close files with SD cards and LittleFS, either close after all data is collected, or close after each datapoint is collected. There are several cases that require the latter, namely when power down is unpredictable in which results in data loss due to lack of file closure. Since this library has no concept of opening and closing, there is no chance of lost data in the even of an unplanned loss of power.
+
+The fastest performance is with a flash chip and LittleFS in a open once / close once scenario. Howerver this configuration becomes very slow when open / close is performed for each data write. SD cards are fast again only in open / close once scenarios. This library offers high performance withought sacrificing data write integridy.
 <br>
 <br>
 ![header image](https://raw.github.com/KrisKasprzak/DBase/master/Images/PerformanceComparison2.jpg)
