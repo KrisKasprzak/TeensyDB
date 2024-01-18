@@ -57,7 +57,7 @@ If you are not familiar with fields and records, fields are the columns, and rec
   </tr>
 </table>
 
-This driver lets you create fields of specified data types, then in some measurement loop add a new record, save a record, and repeat. As with many flash chips you CANNOT write to an address unless it's in the erased state. This driver will find the next available writable address so if you power up your system, and start saving data, you can be sure you will be writing to valid addresses. The field definition process passes pointers into the library so the save process simply looks at the data you already have in memory. This design keeps you from having to populate and save a bunch of fields. One addRecord() call and one saveRecord() call is all that is needed to save your data to the chip.
+This driver lets you create fields of specified data types, then in some measurement loop add a new record, save a record, and repeat. As with many flash chips you CANNOT write to an address unless it's in the erased state hence this library requires data to be written and stored contiguous. This driver will find the next available writable address so if you power up your system, and start saving data, you can be sure you will be writing to valid addresses. The field definition process passes pointers into the library so the save process simply looks at the data you already have in memory. This design keeps you from having to populate and save a bunch of fields. One addRecord() call and one saveRecord() call is all that is needed to save your data to the chip.
 <br>
 <b><h3>Library highlights</b></h3>
 1. relatively small footprint
@@ -69,8 +69,8 @@ This driver lets you create fields of specified data types, then in some measure
 7. ability to read the data out of a field 
 8. ability to get total records so save can start at a valid address
 10. ability to save bytes, ints, uint32_t, floats, char[fixed_length], doubles, more... But sorry STRING is not supported. 
-11. ability to get chips stats (JDEC#, and used space)
-12. ability to erase a sector or the entire chip
+11. ability to get chips stats (JEDEC codes, and used space)
+12. ability to erase a sector or the entire chip (caution: the chip requires contiguous memory for writing so memory in the middle cannot only be erased)
 13. Only 1 field scheme is allow between chip erases
 14. a concept of a field called "RecordSet" could be used to distinguish one set of readings from another--similar to a file number
 15. this library writes data to the chip byte by byte and not byte arrays. This does impede performance, but improves write reliability. Millions of fields have been written and not one bit was lost.
