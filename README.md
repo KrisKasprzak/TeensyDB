@@ -170,8 +170,9 @@ for (i = 1; i <= LastRecord; i++) {
 <br>
 <br>
 <br>
-Performance comparison between this library using a Winbond chip and an SD card.
-
+Performance comparison between 3 different storage options 1) flash chip using this library 2) standard SD card using SdFat 3) flash chio using LittleFS. Users can chose when to close files with SD cards and LittleFS, either close after all data is collected, or close after each datapoint is collected. There are several cases that require the latter, namely when power down is unpredictable in which results in data loss due to lack of file closure. Since this library has no concept of opening and closing, there is no chance of lost data in the even of an unplanned loss of power.  
+<br>
+<br>
 ![header image](https://raw.github.com/KrisKasprzak/DBase/master/Images/PerformanceComparison2.jpg)
 <br>
 <br>
