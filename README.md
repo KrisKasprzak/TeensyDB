@@ -75,7 +75,7 @@ This driver lets you create fields of specified data types, then in some measure
 14. a concept of a field called "RecordSet" could be used to distinguish one set of readings from another--similar to a file number
 15. this library writes data to the chip byte by byte and not byte arrays. This does impede performance, but improves write reliability. Millions of fields have been written and not one bit was lost.
 <br>
-Pin Connection
+<b><h3>Pin Connection</b></h3>
 <table>
   <tr>
     <th>flash chip</th>
@@ -101,10 +101,6 @@ Pin Connection
   </tr>
 </table>
 <br>  
-<br>
-<br>
-
-
 <b><h3>General implementation</b></h3>
 <br>
 1. include the library
