@@ -95,7 +95,7 @@ MyVoltsID = SSD.addField("Volts", &MyVolts);
 
 5. In setup, get the last writable record
 <br>
-LastRecord = YOUR_CHIP_OBJECT.findLastRecord();
+LastRecord = YOUR_CHIP_OBJECT.findFirstWritableRecord();
 <br>
 YOUR_CHIP_OBJECT.gotoRecord(LastRecord);
 <br>
