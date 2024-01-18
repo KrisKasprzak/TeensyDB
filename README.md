@@ -73,7 +73,7 @@ This driver lets you create fields of specified data types, then in some measure
 12. ability to erase a sector or the entire chip (caution: the chip requires contiguous memory for writing so memory in the middle cannot only be erased)
 13. Only 1 field scheme is allow between chip erases
 14. a concept of a field called "RecordSet" could be used to distinguish one set of readings from another--similar to a file number
-15. this library writes data to the chip byte by byte and not byte arrays. This does impede performance, but improves write reliability. Millions of fields have been written and not one bit was lost.
+15. this library writes data to the chip byte by byte and not byte arrays. This does impede performance, but improves write reliability.
 <br>
 <b><h3>Pin Connection</b></h3>
 <table>
@@ -179,6 +179,10 @@ The fastest performance is with a flash chip and LittleFS in a open once / close
 <br>
 <br>
 Testing shows very reliable record writes and reads. This images shows 500,000 writes and reads with no issues.
+
+![header image](https://raw.github.com/KrisKasprzak/DBase/master/Images/SaveReliability.jpg)
+
+This image shows the inspiration for developing this library. Some 55 bytes are being written every second, and on occassion, the SD write proceess corrupts data. Notice the incorrect data highlighted. This error rarely occurrs (estimated at 1 data point / 10,000) and is not reproducable but not acceptable. During testing and usage, this library has written 500 mb bytes without losing 1 bit.
 
 ![header image](https://raw.github.com/KrisKasprzak/DBase/master/Images/SaveReliability.jpg)
 
