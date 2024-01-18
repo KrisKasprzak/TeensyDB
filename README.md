@@ -75,6 +75,42 @@ This driver lets you create fields of specified data types, then in some measure
 14. a concept of a field called "RecordSet" could be used to distinguish one set of readings from another--similar to a file number
 15. this library writes data to the chip byte by byte and not byte arrays. This does impede performance, but improves write reliability. Millions of fields have been written and not one bit was lost.
 <br>
+Pin Connection
+<table>
+  <tr>
+    <th>flash chip</th>
+    <th>CE</th>
+    <th>SO/SIO1</th>
+    <th>WP</th>
+    <th>VSS</th>
+    <th>VDD</th>
+    <th>HOLD</th>
+    <th>SCK</th>
+    <th>SI/SIO0</th>
+  </tr>
+  <tr>
+    <th>Teensy</th>
+    <th>6 (user selection)</th>
+    <th>12 (MISO)</th>
+    <th>3v3</th>
+    <th>GND</th>
+    <th>3v3</th>
+    <th>3v3</th>
+    <th>13 (SCK)</th>
+    <th> 11 (MOSI)</th>
+  </tr>
+</table>
+    
+flash chip  MCU
+CE          6
+SO/SIO1     12 (MISO)
+WP          3v3
+VSS         GND
+VDD         3v3
+HOLD        3v3
+SCK         13 (SCK)
+SI/SIO0     11 (MOSI)
+
 <b><h3>General implementation</b></h3>
 <br>
 1. include the library
