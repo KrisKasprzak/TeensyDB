@@ -1,5 +1,5 @@
 # TeensyDB
-Remember the infamous DBase III? Well here it is for your Teensy microcontroller. This library is a database system for SPI-based flash memory chips and uses a field/record approach in saving data to a chip. While you can save data to and SD card, the classic open/write/close has a huge overhead the can take in the 100's of ms to execute (note this performance is based on open/write/close repeat. Having Open and Close outide the save loop is much faster but at the risk of loosing data in cases of unexpected power down. This driver can save ~50 bytes in under 1ms. Data on the chip can be downloaded to an SD card for portable transfer to a PC. 
+Remember the infamous DBase III from the early '80's? Well here it is for your Teensy microcontroller. This library is a database system for SPI-based flash memory chips and uses a field/record approach in saving data to a chip. While you can save data to and SD card, the classic open/write/close has a huge overhead the can take in the 100's of ms to execute (note this performance is based on open/write/close repeat. Having Open and Close outide the save loop is much faster but at the risk of loosing data in cases of unexpected power down. This driver can save ~50 bytes in under 1ms. Data on the chip can be downloaded to an SD card for portable transfer to a PC. 
 
 This library has been tested with
 <br>
