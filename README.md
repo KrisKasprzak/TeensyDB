@@ -135,6 +135,11 @@ for (i = 1; i <= LastRecord; i++) {
 <br>
 <br>
 <br>
+Performance comparison between this library using a Winbond chip and an SD card.
+
+![header image](https://raw.github.com/KrisKasprzak/DBase/master/Images/PerformanceComparison.jpg)
+<br>
+<br>
 Testing shows very reliable record writes and reads. This images shows 500,000 writes and reads with no issues.
 
 ![header image](https://raw.github.com/KrisKasprzak/DBase/master/Images/SaveReliability.jpg)
