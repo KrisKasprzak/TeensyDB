@@ -17,7 +17,7 @@ Microchip		SST25F040C (https://ww1.microchip.com/downloads/en/DeviceDoc/SST25PF0
 <br>
 Winbond 		25Q64JVSIQ (https://www.winbond.com/resource-files/w25q64jv%20revj%2003272018%20plus.pdf)
 
-This driver is intended for data acquistion systems where known data is to be stored. As it uses a field/record approach, data variables are stored in fields, and each measurement is stored as a record. The intent is to save measurements such as volts in a volt field, temperature in a temp field, etc. Hence, it's not intended for saving video, images, or "random" data. 
+This driver is intended for data acquistion systems where known data is to be stored. As it uses a field/record approach, data variables are stored in fields, and each measurement is stored as a record. The intent is to save measurements such as volts in a volt field, temperature in a temp field, etc. Hence, it's not intended for saving video, images, or "random" data. Because of the database scheme, you cannot change the fields unless you erase the chip first.
 
 If you are not familiar with fields and records, fields are the columns, and records are the rows. Similar to:
 
@@ -53,11 +53,11 @@ If you are not familiar with fields and records, fields are the columns, and rec
   </tr>
 </table>
 
-This driver lets you create fields of specified data types, then in some measurement loop add a new record, save a record, and repeat. As with many flash chips you CANNOT write to an address unless it's in the erased state. This driver will find the next available writable address so if you power up your system, and start saving data, you can be sure you will be writing to valid addresses. The field definition process passes pointers into the library so the save process simpply looks at the data you already have in memory. This design keeps you from having to save a bunch of fields and pay the save performance hit. One addRecord() call and one saveRecord() call is all that is needed to save your data to the chip. When creating fields, the library uses pointers to automatically get the data for storage.
+This driver lets you create fields of specified data types, then in some measurement loop add a new record, save a record, and repeat. As with many flash chips you CANNOT write to an address unless it's in the erased state. This driver will find the next available writable address so if you power up your system, and start saving data, you can be sure you will be writing to valid addresses. The field definition process passes pointers into the library so the save process simply looks at the data you already have in memory. This design keeps you from having to populate and save a bunch of fields. One addRecord() call and one saveRecord() call is all that is needed to save your data to the chip.
 <br>
 <b><h3>Library highlights</b></h3>
 1. relatively small footprint
-2. very fast write times (32 microseconds per byte)
+2. very fast write times (approx 32 microseconds per byte)
 3. ability to add up to 255 fields
 4. ability to add a new record (required for each record save)
 5. ability to save a record with a single call
@@ -68,22 +68,18 @@ This driver lets you create fields of specified data types, then in some measure
 11. ability to get chips stats (JDEC#, and used space)
 12. ability to erase a sector or the entire chip
 13. Only 1 field scheme is allow between chip erases
-<br>
-<b><h3>Library status</b></h3>
-1. works and tested with Winbond W25Q64JVSSIQ<br>
-2. can write ~50 bytes in 1.5 ms<br>
-3. Library wires byte by byte and not byte arrays for improved write reliability, tested by writing 4mb with zero loss of data<br>
+14. this library writes data to the chip byte by byte and not byte arrays. This does impede performance, but improves write reliability. Millions of fields have been written and not one bit was lost.
 <br>
 <b><h3>General implementation</b></h3>
 <br>
 1. include the library
 <br>
-#include "DBase.h"
+#include "TeensyDB.h"
 <br>
 <br>
 2. create the chip object
 <br>
-DBase YOUR_CHIP_OBJECT(THE_CHIP_SELECT_PIN);
+TeensyDB YOUR_OBJECT_NAME(THE_CHIP_SELECT_PIN);
 <br>
 <br>
 3. create variables
@@ -97,15 +93,15 @@ uint32_t LastRecord = 0, i = 0;
 <br>
 4. In setup, create data fields
 <br>
-MyVoltsID = SSD.addField("Volts", &MyVolts);
+MyVoltsID = YOUR_OBJECT_NAME.addField("Volts", &MyVolts);
 <br>
 <br>
 
 5. In setup, get the last writable record
 <br>
-LastRecord = YOUR_CHIP_OBJECT.findFirstWritableRecord();
+LastRecord = YOUR_OBJECT_NAME.findFirstWritableRecord();
 <br>
-YOUR_CHIP_OBJECT.gotoRecord(LastRecord);
+YOUR_OBJECT_NAME.gotoRecord(LastRecord);
 <br>
 <br>
 6. In some measurement loop
@@ -115,17 +111,17 @@ MyVolts = analogRead(A0);
 <br>
 7. Add a new record
 <br>
-YOUR_CHIP_OBJECT.addRecord();
+YOUR_OBJECT_NAME.addRecord();
 <br>
 <br>
 8. Save the record
 <br>
-YOUR_CHIP_OBJECT.saveRecord();
+YOUR_OBJECT_NAME.saveRecord();
 <br>
 <br>
 9. when you are ready to read the data...
 <br>
-LastRecord = SSD.getLastRecord();
+LastRecord = YOUR_OBJECT_NAME.getLastRecord();
 <br>
 for (i = 1; i <= LastRecord; i++) {
 <br>
@@ -135,7 +131,7 @@ for (i = 1; i <= LastRecord; i++) {
 <br>
 &nbsp Serial.print(" - ");
 <br>
-&nbsp Serial.print(YOUR_CHIP_OBJECT.getField(MyVolts, MyVoltsID ));
+&nbsp Serial.print(YOUR_OBJECT_NAME.getField(MyVolts, MyVoltsID ));
 <br>
 &nbsp Serial.print(", ");
 <br>
