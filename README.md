@@ -23,7 +23,8 @@ If you are not familiar with fields and records, fields are the columns, and rec
 
 <table>
   <tr>
-    <th>Record</th>
+    <th>Recordset</th>
+    <th>Datapoint</th>
     <th>Time</th>
     <th>Temp1</th>
     <th>Temp2</th>
@@ -32,12 +33,14 @@ If you are not familiar with fields and records, fields are the columns, and rec
   </tr>
   <tr>
     <td>1</td>
+    <td>1</td>
     <td>10:00</td>
     <td>23.4</td>
     <td>45.2</td>
     <td>63.1</td>
   </tr>
   <tr>
+    <td>1</td>
     <td>2</td>
     <td>10:01</td>
     <td>23.6</td>
@@ -45,6 +48,7 @@ If you are not familiar with fields and records, fields are the columns, and rec
     <td>65.4</td>
   </tr>
     <tr>
+      <td>1</td>
     <td>3</td>
     <td>10:02</td>
     <td>23.7</td>
