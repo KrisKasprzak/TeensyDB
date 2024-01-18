@@ -100,16 +100,10 @@ Pin Connection
     <th> 11 (MOSI)</th>
   </tr>
 </table>
-    
-flash chip  MCU
-CE          6
-SO/SIO1     12 (MISO)
-WP          3v3
-VSS         GND
-VDD         3v3
-HOLD        3v3
-SCK         13 (SCK)
-SI/SIO0     11 (MOSI)
+<br>  
+<br>
+<br>
+
 
 <b><h3>General implementation</b></h3>
 <br>
