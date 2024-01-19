@@ -238,7 +238,7 @@ void CheckKeyPress() {
         Serial.println();
         DrawMenu();
         break;
-      case 'C' | 'c':
+      case 'C' :
         // option to log data to the last known recordset id
         Serial.println("Logging...");
         // this is appending the current dataset so we want to get the last recordset id and use it
@@ -262,7 +262,7 @@ void CheckKeyPress() {
         Serial.println();
         DrawMenu();
         break;
-      case 'D' | 'd':
+      case 'D':
         DownloadData();
         DrawMenu();
         break;
