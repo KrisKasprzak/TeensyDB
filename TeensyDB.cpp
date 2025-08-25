@@ -46,7 +46,7 @@ bool TeensyDB::init() {
 	delay(20);	
 	pinMode(CSPin, OUTPUT);
 
-	digitalWriteFast(CSPin, HIGH);
+	digitalWrite(CSPin, HIGH);
 	delay(20);	
 	
 	initStatus = readChipJEDEC();
@@ -59,16 +59,16 @@ bool TeensyDB::init() {
 	uint8_t byteID[3];
 
 	SPI.beginTransaction(SPISettings(SPEED_WRITE, MSBFIRST, SPI_MODE0));
-	digitalWriteFast(CSPin, LOW);
+	digitalWrite(CSPin, LOW);
 	delay(10);
 	
 	SPI.transfer(JEDEC);
 
-	byteID[0] = SPI.transfer(DUMMY);
-	byteID[1] = SPI.transfer(DUMMY);
-	byteID[2] = SPI.transfer(DUMMY);
+	byteID[0] = SPI.transfer(0x00);
+	byteID[1] = SPI.transfer(0x00);
+	byteID[2] = SPI.transfer(0x00);
 
-	digitalWriteFast(CSPin, HIGH);
+	digitalWrite(CSPin, HIGH);
 	SPI.endTransaction();
 	
 	if ((byteID[0] == 0) || (byteID[0] == NULL_RECORD)) {
@@ -93,19 +93,19 @@ bool TeensyDB::init() {
  void TeensyDB::getUniqueID(uint8_t *ByteID){
 	 
 	SPI.beginTransaction(SPISettings(SPEED_WRITE, MSBFIRST, SPI_MODE0));
-	digitalWriteFast(CSPin, LOW);
+	digitalWrite(CSPin, LOW);
 	delay(10);
 	
 	SPI.transfer(UNIQUEID);
 
-	SPI.transfer(DUMMY);
-	SPI.transfer(DUMMY);
-	SPI.transfer(DUMMY);
-	SPI.transfer(DUMMY);
+	SPI.transfer(0x00);
+	SPI.transfer(0x00);
+	SPI.transfer(0x00);
+	SPI.transfer(0x00);
 	
 	SPI.transfer(ByteID, 8);
 	
-	digitalWriteFast(CSPin, HIGH);
+	digitalWrite(CSPin, HIGH);
 	SPI.endTransaction();
 	
  }
@@ -188,7 +188,7 @@ uint32_t TeensyDB::findFirstWritableRecord(){
 	
 	// test the first record
 	gotoRecord(1);
-	RecType = readData();
+	RecType = readByte();
 	
 	if (RecType == NULL_RECORD){
 		// no DATA
@@ -202,7 +202,7 @@ uint32_t TeensyDB::findFirstWritableRecord(){
 	// test the last record
 	gotoRecord(MaxRecords);
 	
-	RecType = readData();
+	RecType = readByte();
 
 	if (RecType != NULL_RECORD){
 		// card full
@@ -216,7 +216,7 @@ uint32_t TeensyDB::findFirstWritableRecord(){
 	// record crawling scheme, slow
 	for (i = 1; i < MaxRecords; i++){
 		gotoRecord(i);
-		RecType = readData();
+		RecType = readByte();
 		
 		if (RecType == NULL_RECORD){
 			NewCard = false;
@@ -241,9 +241,9 @@ uint32_t TeensyDB::findFirstWritableRecord(){
 		
 		MiddleRecord = (EndRecord + StartRecord) / 2;
 		Address = MiddleRecord * RecordLength;
-		RecType = readData();
+		RecType = readByte();
 		Address = (MiddleRecord + 1)  * RecordLength;
-		NextRecType = readData();
+		NextRecType = readByte();
 	
 		if ((RecType == NULL_RECORD) && (NextRecType == NULL_RECORD)){
 			// first writabel record must be before middle record
@@ -493,17 +493,6 @@ uint32_t TeensyDB::getTotalSpace(){
 	return CARD_SIZE;
 }
 
-void TeensyDB::setReadSpeed(bool Speed){
-	readSpeed = Speed;
-	if (readSpeed){
-		readByteSize = 5;
-	}
-	else {
-		readByteSize = 4;
-	}
-}
-
-
 void TeensyDB::B2ToBytes(uint8_t *bytes, int16_t var) {
   bytes[0] = (uint8_t) (var >> 8);
   bytes[1] = (uint8_t) (var);
@@ -596,7 +585,7 @@ void TeensyDB::dumpBytes() {
 		Serial.print(" - ");
 			
 		for (i = 0; i< RecordLength; i++){
-			readvalue = readData();
+			readvalue = readByte();
 			if((i == 0) && (readvalue == NULL_RECORD)) {
 				InvalidRecords++;
 			}
@@ -623,19 +612,19 @@ void TeensyDB::eraseAll(){
 	
 	SPI.beginTransaction(SPISettings(SPEED_WRITE, MSBFIRST, SPI_MODE0));
 	
-	digitalWriteFast(CSPin, LOW);
+	digitalWrite(CSPin, LOW);
 	SPI.transfer(WRITEENABLE);
-	digitalWriteFast(CSPin, HIGH);
-	waitForChip(60000);
+	digitalWrite(CSPin, HIGH);
+	waitForChip(50);
 
 
-	digitalWriteFast(CSPin, LOW);
+	digitalWrite(CSPin, LOW);
 	SPI.transfer(CHIPERASE);
-	digitalWriteFast(CSPin, HIGH);
-
+	digitalWrite(CSPin, HIGH);
+	waitForChip(600000);
 	
 	SPI.endTransaction();
-	waitForChip(60000);
+	
 	
 	NewCard = true;
 	ReadComplete = true;
@@ -653,15 +642,15 @@ void TeensyDB::eraseSector(uint32_t SectorNumber){
 	buildCommandBytes(CmdBytes, SECTORERASE, Address);
 		
 	SPI.beginTransaction(SPISettings(SPEED_WRITE, MSBFIRST, SPI_MODE0));
-	digitalWriteFast(CSPin, LOW);
+	digitalWrite(CSPin, LOW);
 	SPI.transfer(WRITEENABLE);
-	digitalWriteFast(CSPin, HIGH);
+	digitalWrite(CSPin, HIGH);
 
 	waitForChip(60000);
 
-	digitalWriteFast(CSPin, LOW);
+	digitalWrite(CSPin, LOW);
 	SPI.transfer(CmdBytes, 4);
-	digitalWriteFast(CSPin, HIGH);
+	digitalWrite(CSPin, HIGH);
 	waitForChip(60000);
 	SPI.endTransaction();
 	
@@ -674,15 +663,15 @@ void TeensyDB::eraseSmallBlock(uint32_t BlockNumber){
 	buildCommandBytes(CmdBytes, SMALLBLOCKERASE, Address);
 		
 	SPI.beginTransaction(SPISettings(SPEED_WRITE, MSBFIRST, SPI_MODE0));
-	digitalWriteFast(CSPin, LOW);
+	digitalWrite(CSPin, LOW);
 	SPI.transfer(WRITEENABLE);
-	digitalWriteFast(CSPin, HIGH);
+	digitalWrite(CSPin, HIGH);
 
 	waitForChip(60000);
 
-	digitalWriteFast(CSPin, LOW);
+	digitalWrite(CSPin, LOW);
 	SPI.transfer(CmdBytes, 4);
-	digitalWriteFast(CSPin, HIGH);
+	digitalWrite(CSPin, HIGH);
 	waitForChip(60000);
 	SPI.endTransaction();
 	
@@ -694,84 +683,85 @@ void TeensyDB::eraseLargeBlock(uint32_t BlockNumber){
 	buildCommandBytes(CmdBytes, LARGEBLOCKERASE, Address);
 		
 	SPI.beginTransaction(SPISettings(SPEED_WRITE, MSBFIRST, SPI_MODE0));
-	digitalWriteFast(CSPin, LOW);
+	digitalWrite(CSPin, LOW);
 	SPI.transfer(WRITEENABLE);
-	digitalWriteFast(CSPin, HIGH);
+	digitalWrite(CSPin, HIGH);
 
 	waitForChip(60000);
 
-	digitalWriteFast(CSPin, LOW);
+	digitalWrite(CSPin, LOW);
 	SPI.transfer(CmdBytes, 4);
-	digitalWriteFast(CSPin, HIGH);
+	digitalWrite(CSPin, HIGH);
 	waitForChip(60000);
 	SPI.endTransaction();
 	
 }
+
 
 // get data
 	
 uint8_t TeensyDB::getField(uint8_t Data, uint8_t Field){
 
 	Address = (CurrentRecord * RecordLength) + FieldStart[Field];
-	a1Byte[0] = readData();
+	aBytes[0] = readByte();
 	
-	return (uint8_t) a1Byte[0];
+	return (uint8_t) aBytes[0];
 
 }
 
 int TeensyDB::getField(int Data, uint8_t Field){
 
 	Address = (CurrentRecord * RecordLength) + FieldStart[Field];
-	a4Bytes[0] = readData();
-	a4Bytes[1] = readData();
-	a4Bytes[2] = readData();
-	a4Bytes[3] = readData();
+	aBytes[0] = readByte();
+	aBytes[1] = readByte();
+	aBytes[2] = readByte();
+	aBytes[3] = readByte();
 	
-	return (int) ( (a4Bytes[0] << 24) | (a4Bytes[1] << 16) | (a4Bytes[2] << 8) | (a4Bytes[3]));
+	return (int) ( (aBytes[0] << 24) | (aBytes[1] << 16) | (aBytes[2] << 8) | (aBytes[3]));
 
 }
 
 int16_t TeensyDB::getField(int16_t Data, uint8_t Field){
 
 	Address = (CurrentRecord * RecordLength) + FieldStart[Field];
-	a2Bytes[0] = readData();
-	a2Bytes[1] = readData();
+	aBytes[0] = readByte();
+	aBytes[1] = readByte();
 
-	return (int16_t) (a2Bytes[0] << 8) | (a2Bytes[1]);
+	return (int16_t) (aBytes[0] << 8) | (aBytes[1]);
 
 }
 
 uint16_t TeensyDB::getField(uint16_t Data, uint8_t Field){
 
 	Address = (CurrentRecord * RecordLength) + FieldStart[Field];
-	a2Bytes[0] = readData();
-	a2Bytes[1] = readData();
+	aBytes[0] = readByte();
+	aBytes[1] = readByte();
 
-	return (uint16_t) (a2Bytes[0] << 8) | (a2Bytes[1]);
+	return (uint16_t) (aBytes[0] << 8) | (aBytes[1]);
 
 }
 
 int32_t TeensyDB::getField(int32_t Data, uint8_t Field){
 
 	Address = (CurrentRecord * RecordLength) + FieldStart[Field];
-	a4Bytes[0] = readData();
-	a4Bytes[1] = readData();
-	a4Bytes[2] = readData();
-	a4Bytes[3] = readData();
+	aBytes[0] = readByte();
+	aBytes[1] = readByte();
+	aBytes[2] = readByte();
+	aBytes[3] = readByte();
 
-	return (int32_t) ( (a4Bytes[0] << 24) | (a4Bytes[1] << 16) | (a4Bytes[2] << 8) | (a4Bytes[3]));
+	return (int32_t) ( (aBytes[0] << 24) | (aBytes[1] << 16) | (aBytes[2] << 8) | (aBytes[3]));
 
 }
 
 uint32_t TeensyDB::getField(uint32_t Data, uint8_t Field){
 
 	Address = (CurrentRecord * RecordLength) + FieldStart[Field];
-	a4Bytes[0] = readData();
-	a4Bytes[1] = readData();
-	a4Bytes[2] = readData();
-	a4Bytes[3] = readData();
+	aBytes[0] = readByte();
+	aBytes[1] = readByte();
+	aBytes[2] = readByte();
+	aBytes[3] = readByte();
 
-	return (uint32_t) ( (a4Bytes[0] << 24) | (a4Bytes[1] << 16) | (a4Bytes[2] << 8) | (a4Bytes[3]));
+	return (uint32_t) ( (aBytes[0] << 24) | (aBytes[1] << 16) | (aBytes[2] << 8) | (aBytes[3]));
 
 }
 
@@ -781,12 +771,12 @@ float TeensyDB::getField(float Data, uint8_t Field){
 
 	Address = (CurrentRecord * RecordLength) + FieldStart[Field];
 	
-	a4Bytes[0] = readData();
-	a4Bytes[1] = readData();
-	a4Bytes[2] = readData();
-	a4Bytes[3] = readData();	
+	aBytes[0] = readByte();
+	aBytes[1] = readByte();
+	aBytes[2] = readByte();
+	aBytes[3] = readByte();	
 
-	memcpy(&f, &a4Bytes, sizeof(f));
+	memcpy(&f, &aBytes, sizeof(f));
 	return f;
 	
 }
@@ -794,34 +784,37 @@ float TeensyDB::getField(float Data, uint8_t Field){
 double TeensyDB::getField(double Data, uint8_t Field){
     double d;
 	Address = (CurrentRecord * RecordLength) + FieldStart[Field];
-	a8Bytes[0] = readData();
-	a8Bytes[1] = readData();
-	a8Bytes[2] = readData();
-	a8Bytes[3] = readData();	
-	a8Bytes[4] = readData();
-	a8Bytes[5] = readData();
-	a8Bytes[6] = readData();
-	a8Bytes[7] = readData();
+	aBytes[0] = readByte();
+	aBytes[1] = readByte();
+	aBytes[2] = readByte();
+	aBytes[3] = readByte();	
+	aBytes[4] = readByte();
+	aBytes[5] = readByte();
+	aBytes[6] = readByte();
+	aBytes[7] = readByte();
 	
-	memcpy(&d, &a8Bytes, sizeof(d));
+	memcpy(&d, &aBytes, sizeof(d));
 	return d;
 }
 
 char  *TeensyDB::getCharField(uint8_t Field){
 	
-	int8_t bytes[MAXFIELDNAMELENGTH+2];
+	int8_t bytes[FieldLength[Field]+1];
 	
 	Address = (CurrentRecord * RecordLength) + FieldStart[Field];
-
-	for (i = 0; i < MAXFIELDNAMELENGTH;i++){
-		bytes[i] = readData();
+	for (i = 0; i < FieldLength[Field];i++){
+		bytes[i] = readByte();
+		if (bytes[i] == '\0'){
+			break;
+		}		
 	}
 	
-	memset(stng,0,MAXFIELDNAMELENGTH+2);
+	memset(stng,0,FieldLength[Field]+1);
 	
-	memcpy(stng, bytes, MAXFIELDNAMELENGTH+2);
-	
+	memcpy(stng, bytes, FieldLength[Field]);
+	//stng[sizeof(bytes)] = '\0';
 	return stng;
+
 }
 
 uint32_t TeensyDB::getCurrentRecord(){
@@ -856,25 +849,87 @@ void TeensyDB::gotoRecord(uint32_t RecordNumber){
 
 }
 
-uint8_t TeensyDB::readData() {
+bool TeensyDB::saveRecord() {
 	
-	if (readSpeed){
-		buildCommandBytes(CmdBytes, FASTREAD, Address);
-		SPI.beginTransaction(SPISettings(SPEED_READ_FAST, MSBFIRST, SPI_MODE0));
+	for (i= 0; i < FieldCount; i++){		
+
+		if (DataType[i] == DT_U8){		
+			RECORD[FieldStart[i]] = *u8data[i];
+		}
+		else if (DataType[i] == DT_INT){			
+			RECORD[FieldStart[i]] = (uint8_t) (*intdata[i] >> 24);
+			RECORD[FieldStart[i]+1] = (uint8_t) (*intdata[i] >> 16);
+			RECORD[FieldStart[i]+2] = (uint8_t) (*intdata[i] >> 8);
+			RECORD[FieldStart[i]+3] = (uint8_t) (*intdata[i]);			
+		}
+		else if (DataType[i] == DT_I16){			
+			RECORD[FieldStart[i]] = (uint8_t) (*i16data[i] >> 8);
+			RECORD[FieldStart[i]+1] = (uint8_t) (*i16data[i]);
+		}
+		else if (DataType[i] == DT_U16){			
+			RECORD[FieldStart[i]] = (uint8_t)(*u16data[i]  >> 8 );
+			RECORD[FieldStart[i]+1] = (uint8_t) *u16data[i];
+		}
+		else if (DataType[i] == DT_I32){			
+			RECORD[FieldStart[i]] = (uint8_t) (*i32data[i] >> 24);
+			RECORD[FieldStart[i]+1] = (uint8_t) (*i32data[i] >> 16);
+			RECORD[FieldStart[i]+2] = (uint8_t) (*i32data[i] >> 8);
+			RECORD[FieldStart[i]+3] = (uint8_t) (*i32data[i]);
+		}
+		else if (DataType[i] == DT_U32){			
+			RECORD[FieldStart[i]] = (uint8_t) (*u32data[i] >> 24);
+			RECORD[FieldStart[i]+1] = (uint8_t) (*u32data[i] >> 16);
+			RECORD[FieldStart[i]+2] = (uint8_t) (*u32data[i] >> 8);
+			RECORD[FieldStart[i]+3] = (uint8_t) (*u32data[i]);
+		}
+		else if (DataType[i] == DT_FLOAT){	
+			memcpy(aBytes, (void *)fdata[i], FieldLength[i]);			
+			for (q = 0; q < FieldLength[i]; q++){
+				RECORD[FieldStart[i]+q] = aBytes[q];
+			}			
+		}	
+		else if (DataType[i] == DT_DOUBLE){				
+			memcpy(aBytes, (void*)ddata[i], FieldLength[i]);
+			for (q = 0; q < FieldLength[i]; q++){
+				RECORD[FieldStart[i]+q] = aBytes[q];
+			}	
+		}
+		else if (DataType[i] == DT_CHAR){				
+			strcpy(buf,cdata[i]);			
+			for (q = 0; q < strlen(buf); q++){
+				RECORD[FieldStart[i]+q] = buf[q];
+			}
+			RECORD[FieldStart[i]+q] = '\0';
+		}	
 	}
-	else{
-		buildCommandBytes(CmdBytes, READ, Address);
-		SPI.beginTransaction(SPISettings(SPEED_READ, MSBFIRST, SPI_MODE0));
+	/*
+	for (q = 0; q < RecordLength; q++){
+		Serial.print(RECORD[q]);
+		Serial.print("-");
 	}
+	Serial.println();
+	*/
+	writeRecord();
 		
-	digitalWriteFast(CSPin, LOW);
-	SPI.transfer(CmdBytes, readByteSize);
-	readvalue = SPI.transfer(DUMMY);
-	digitalWriteFast(CSPin, HIGH);
+	return true;
+	
+}
+
+uint8_t TeensyDB::readByte() {
+	
+
+	buildCommandBytes(CmdBytes, READ, Address);
+	SPI.beginTransaction(SPISettings(SPEED_READ, MSBFIRST, SPI_MODE0));
+
+		
+	digitalWrite(CSPin, LOW);
+	SPI.transfer(CmdBytes, 4);
+	readvalue = SPI.transfer(0x00);
+	digitalWrite(CSPin, HIGH);
 	
 	SPI.endTransaction();  
 
-	waitForChip(40);
+	waitForChip(50);
 
 	// since we are reading byte by byte we need to advance address
 	// reading byte arrays is unreliable
@@ -884,47 +939,22 @@ uint8_t TeensyDB::readData() {
   
 }
 
-void TeensyDB::writeData(uint8_t data) {
-
-	buildCommandBytes(CmdBytes, WRITE, Address);
-		
-	SPI.beginTransaction(SPISettings(SPEED_WRITE, MSBFIRST, SPI_MODE0));
-	digitalWriteFast(CSPin, LOW);
-	SPI.transfer(WRITEENABLE); 
-	digitalWriteFast(CSPin, HIGH); 
-
-    waitForChip(10);
-
-	digitalWriteFast(CSPin, LOW);
-	SPI.transfer(CmdBytes, 4);  
-	SPI.transfer(data); 
-	digitalWriteFast(CSPin, HIGH);  
-
-	SPI.endTransaction();
-
-	waitForChip(10);
-		
-	// since we are writing byte by byte we need to advance address
-	// writing byte arrays is unreliable
-	Address = Address + 1;
-
-}
-
 void TeensyDB::waitForChip(uint32_t Wait) {
 	
 	timeout = millis();
-	while (1) {
-		SPI.beginTransaction(SPISettings(SPEED_WRITE, MSBFIRST, SPI_MODE0));
-		digitalWriteFast(CSPin, LOW);
-		status = SPI.transfer16(0x0500); // 0x05 = get status
-		digitalWriteFast(CSPin, HIGH);
-		SPI.endTransaction();
-		if (!(status & 1)) break;
-		if ((millis() - timeout) > Wait) return; // timeout
+	uint8_t Status = 0x01;
+	
+	while (Status & STAT_WIP){	
 		
+		digitalWrite(CSPin, LOW);
+		//delayMicroseconds(5);
+		SPI.transfer(CMD_READ_STATUS_REG);
+		Status = SPI.transfer(0x00);
+		digitalWrite(CSPin, HIGH);
+		//delayMicroseconds(5);
+		if ((millis() - timeout) > Wait) return; // timeout
 	}
-
-	return ;
+	
 
 }
 
@@ -933,91 +963,76 @@ void TeensyDB::buildCommandBytes(uint8_t *buf, uint8_t cmd, uint32_t addr) {
 	buf[1] = addr >> 16;
 	buf[2] = addr >> 8;
 	buf[3] = addr;
-	if (readSpeed){
-		buf[4] = DUMMY;
-	}
+
 }
 
-bool TeensyDB::saveRecord() {
+void TeensyDB::writeRecord() {
+		
+ 	Address = CurrentRecord * RecordLength;
+
+	// we start writing at 0 byte of current record
+	// then we write in sequence RecordLength bytes
 	
-	if (!RecordAdded) {
-		if (!addRecord()){
-			return false;
-		}
+	uint8_t i = 0, LastByte = RecordLength;
+	bool PageSpan = false;
+	pageOffset = Address % PAGE_SIZE;
+	
+	if ((pageOffset + RecordLength) > PAGE_SIZE){
+		PageSpan = true;		
+		LastByte = PAGE_SIZE - pageOffset;
 	}
 
-	for (i= 1; i <= FieldCount; i++){
-		
-		Address = (CurrentRecord * RecordLength) + FieldStart[i];
-		
-		if (DataType[i] == DT_U8){
-			writeData(*u8data[i]);
-		}
-		else if (DataType[i] == DT_INT){
-			B4ToBytes(a4Bytes, *intdata[i]);
-			writeData(a4Bytes[0]);
-			writeData(a4Bytes[1]);
-			writeData(a4Bytes[2]);
-			writeData(a4Bytes[3]);
-		}
-		else if (DataType[i] == DT_I16){
-			B2ToBytes(a2Bytes, *i16data[i]);
-			writeData(a2Bytes[0]);
-			writeData(a2Bytes[1]);
-		}
-		else if (DataType[i] == DT_U16){
-			B2ToBytes(a2Bytes, *u16data[i]);
-			writeData(a2Bytes[0]);
-			writeData(a2Bytes[1]);
-		}
-		else if (DataType[i] == DT_I32){
-			B4ToBytes(a4Bytes, *i32data[i]);
-			writeData(a4Bytes[0]);
-			writeData(a4Bytes[1]);
-			writeData(a4Bytes[2]);
-			writeData(a4Bytes[3]);
-		}
-		else if (DataType[i] == DT_U32){	
-			B4ToBytes(a4Bytes, *u32data[i]);
-			writeData(a4Bytes[0]);
-			writeData(a4Bytes[1]);
-			writeData(a4Bytes[2]);
-			writeData(a4Bytes[3]);
-		}
-		else if (DataType[i] == DT_FLOAT){		
-			FloatToBytes(a4Bytes, *fdata[i]);
-			writeData(a4Bytes[0]);
-			writeData(a4Bytes[1]);
-			writeData(a4Bytes[2]);
-			writeData(a4Bytes[3]);	
-		}	
-		else if (DataType[i] == DT_DOUBLE){		
-			DoubleToBytes(a8Bytes, *ddata[i]);
-			writeData(a8Bytes[0]);
-			writeData(a8Bytes[1]);
-			writeData(a8Bytes[2]);
-			writeData(a8Bytes[3]);	
-			writeData(a8Bytes[4]);
-			writeData(a8Bytes[5]);
-			writeData(a8Bytes[6]);
-			writeData(a8Bytes[7]);	
-		}		
+	SPI.beginTransaction(SPISettings(SPEED_WRITE, MSBFIRST, SPI_MODE0));
 	
-		else if (DataType[i] == DT_CHAR){
-		
-			strcpy(buf,cdata[i]);
+	digitalWrite(CSPin, LOW);
+	SPI.transfer(WRITEENABLE);
+	digitalWrite(CSPin, HIGH); 
 
-			for (j = 0; j < MAXDATACHARLEN; j ++){
-				writeData(buf[j]);				
-			}		
+	waitForChip(50);
 
-		}
-			
+	digitalWrite(CSPin, LOW);	
+	SPI.transfer(WRITE);	
+	SPI.transfer((uint8_t) ((Address >> 16) & 0xFF));
+	SPI.transfer((uint8_t) ((Address >> 8) & 0xFF));
+	SPI.transfer((uint8_t) (Address & 0xFF));	
+	
+	for (i = 0; i < LastByte; i++){
+		SPI.transfer(RECORD[i]);	
+		Address++;		
 	}
-
-	RecordAdded = false;
-	return true;
+	 
+	digitalWrite(CSPin, HIGH); 
+		
+	waitForChip(50);
 	
+	SPI.endTransaction();	
+
+	if (!PageSpan){
+		Address = Address + RecordLength;
+		return;
+	}
+	SPI.beginTransaction(SPISettings(SPEED_WRITE, MSBFIRST, SPI_MODE0));
+	digitalWrite(CSPin, LOW);
+	SPI.transfer(WRITEENABLE);
+	digitalWrite(CSPin, HIGH); 
+
+	waitForChip(50);
+
+	digitalWrite(CSPin, LOW);	
+	SPI.transfer(WRITE);	
+	SPI.transfer((uint8_t) ((Address >> 16) & 0xFF));
+	SPI.transfer((uint8_t) ((Address >> 8) & 0xFF));
+	SPI.transfer((uint8_t) (Address & 0xFF));	
+	
+	for (i = LastByte; i < RecordLength; i++){
+		SPI.transfer(RECORD[i]);
+		Address++;		
+	}
+	 
+	digitalWrite(CSPin, HIGH); 
+	waitForChip(50);
+	SPI.endTransaction();	
+
 }
 
 //////////////////////////////////////////////////////////
