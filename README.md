@@ -61,7 +61,7 @@ This driver lets you create fields of specified data types, then in some measure
 <br>
 <b><h3>Library highlights</b></h3>
 1. relatively small footprint
-2. very fast write times (approx 32 microseconds per byte)
+2. very fast write times (approx 270,000 bytes / second)
 3. ability to add up to 255 fields
 4. ability to add a new record (required for each record save)
 5. ability to save a record with a single call
