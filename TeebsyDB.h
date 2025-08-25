@@ -24,6 +24,7 @@
 	rev		date			author				change
 	1.0		2/2022			kasprzak			initial code
 	2.0		1/2024			kasprzak			code cleanup
+	2.5		8/2024			kasprzak			Optimized write time by writing full record as oppposed to byte by byte
 	
 	This library has been tested with
 	MCU
@@ -56,11 +57,12 @@
 
 #include <SPI.h>  
 
-#define TEENSYDB_VERSION 2.0
+#define TEENSYDB_VERSION 2.5
 
 #define MAX_FIELDS 20
-#define MAXFIELDNAMELENGTH 20
-#define MAXDATACHARLEN 20
+#define TEENSYDB_MAXREXORDLENGTH 100
+#define TEENSYDB_MAXDATACHARLEN 20
+#define PAGE_SIZE 256
 
 // chip size details
 #define CARD_SIZE 8388608 // 32768 pages x 256
@@ -68,8 +70,7 @@
 #define LARGE_BLOCK_SIZE 65536
 #define SMALL_BLOCK_SIZE 32768
 #define SPEED_WRITE      25000000
-#define SPEED_READ       25000000 // this can probably be pushed to 60 mhz
-#define SPEED_READ_FAST  60000000 // max speed for spi bus
+#define SPEED_READ       25000000
 
 // chip instruction codes
 #define NULL_RECORD 	0xFF
@@ -77,13 +78,14 @@
 #define WRITE         	0x02
 #define READ          	0x03
 #define FASTREAD        0x0B
+#define CMD_READ_STATUS_REG    0x05
 #define SMALLBLOCKERASE 0x52
 #define LARGEBLOCKERASE 0xD8
 #define SECTORERASE   	0x20
 #define CHIPERASE     	0x60
 #define JEDEC         	0x9F
 #define UNIQUEID     	0x4B
-#define DUMMY     		0x00
+#define STAT_WIP 			   0x01
 //
 //
 // end of chip specific settings
@@ -106,8 +108,6 @@
 #define CHIP_FORCE_RESTART -3
 #define NO_FIELDS -4
 
-#define READ_NORMAL false
-#define READ_FAST true
 // class constructor
 class  TeensyDB {
 		
@@ -233,17 +233,13 @@ public:
 	
 	// method to return the chips card size as defined above in a #define
 	uint32_t getTotalSpace();	
-	
-	// method to return the chips card size as defined above in a #define
-	void setReadSpeed(bool Speed = READ_NORMAL);	
-		
+			
 	// overloaded functions to getField data
 	// odd to pass variable in, but that is whats used
 	// to determine byte size to get and convert to a specific data type
 	// I'm happy to hear of a better way
 	uint8_t getField(uint8_t Data, uint8_t Field);
 	int getField(int Data, uint8_t Field);
-	long getField(long Data, uint8_t Field);
 	int16_t getField(int16_t Data, uint8_t Field);
 	uint16_t getField(uint16_t Data, uint8_t Field);
 	int32_t getField(int32_t Data, uint8_t Field);
@@ -251,6 +247,10 @@ public:
 	float getField(float Data, uint8_t Field);
 	double getField(double Data, uint8_t Field);
 	char *getCharField(uint8_t Field);
+
+		// method to dump bytes to the serial monitor. it will dump based on the set field list
+	// mainly for debugging, no known practical use
+	void dumpBytes();
 				
 private:
 
@@ -259,17 +259,14 @@ private:
 	unsigned long bt = 0;
 	bool RecordAdded = false;
 	bool ReadComplete = false;
-	char stng[MAXDATACHARLEN];
+	char stng[TEENSYDB_MAXDATACHARLEN];
+	uint8_t RECORD[TEENSYDB_MAXREXORDLENGTH];
 	bool initStatus = false;
 	uint32_t timeout = 0;
 	char ChipJEDEC[15];
-	uint8_t readByteSize = 4; // 4 for normal speed, 5 for fast, ignire last for normal speed
+
 	uint8_t CmdBytes[5]; 
-	uint8_t a1Byte[1];
-	uint8_t a2Bytes[2];
-	uint8_t a4Bytes[4];
-	uint8_t a8Bytes[8];
-	char dateBytes[8];
+	uint8_t aBytes[8];
 	bool NewCard = false;
 	uint8_t readvalue;
 	uint32_t TempAddress = 0;
@@ -278,16 +275,15 @@ private:
 	uint32_t LastRecord = 0;
 	uint32_t CurrentRecord = 0;
 	uint32_t i = 0, j = 0;
-	bool readSpeed = false;
+	uint8_t q = 0;
 	uint8_t FieldCount = 0;
 	uint16_t status = 0;
 	uint8_t RecordLength;
 	int16_t pagesize;
-
+	size_t pageOffset;
 	uint8_t DataType[MAX_FIELDS];
 	uint8_t FieldStart[MAX_FIELDS];
 	uint8_t FieldLength[MAX_FIELDS];
-		
 	uint8_t *u8data[MAX_FIELDS];
 	int *intdata[MAX_FIELDS];
 	int16_t *i16data[MAX_FIELDS];
@@ -297,28 +293,24 @@ private:
 	float *fdata[MAX_FIELDS];
 	double *ddata[MAX_FIELDS];
 	char *cdata[MAX_FIELDS];
-	char buf[MAXDATACHARLEN];
+	char buf[TEENSYDB_MAXDATACHARLEN];
 	
 	unsigned char wip_check;
 	uint32_t st = 0;
 	unsigned char ret = 0;
 	
+	void writeRecord();
 	bool readChipJEDEC();
-	void NewFunction();
-	// method to write data to the chip one byte at a time
-	// i've yet gotten writing byte arrays to work reliably
-	// this byte by byte method has save ~1 million bytes w/o a loss
-	void writeData(uint8_t data);
-	
+
 	// method to read data to the chip one byte at a time
 	// ReadData and SetAddress could be made public for getting data from the chip
 	// in an emergency situation
-	uint8_t readData();
+	uint8_t readByte();
 	void setAddress(uint32_t Address);
 	
 	// method to save data on a field by field basis
 	// recall this library is a record/field database
-	void saveField(uint8_t *Data, uint8_t Field);
+	//void saveField(uint8_t *Data, uint8_t Field);
 
 	// method to read chips status to see if it's done
 	void waitForChip(uint32_t Wait);
@@ -345,9 +337,7 @@ private:
 	// not really a practical need since getField will return the data
 	uint8_t getFieldStart(uint8_t Index);
 		
-	// method to dump bytes to the serial monitor. it will dump based on the set field list
-	// mainly for debugging, no known practical use
-	void dumpBytes();
+
 	
 };
 
